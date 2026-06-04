@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Clasificador de Panes</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🍞 Clasificador de Panes</h1>
+    <p class="subtitle">Detecta si es <strong>Concha</strong> u <strong>Ojo</strong></p>
+
+    <div class="modelos-info">
+      <span>Fondo Blanco: <b>{{ modelos.get('IM_F_BLANCO', 'N/A') }}</b></span>
+      <span>Fondo Color: <b>{{ modelos.get('IM_F_COLOR', 'N/A') }}</b></span>
+    </div>
+
+    <!-- Preview de imagen -->
+    <div class="preview-box" id="previewBox">
+      <span>Toma o sube una foto</span>
+      <img id="preview" src="" alt="preview" style="display:none" />
+    </div>
+
+    <!-- Botones -->
+    <div class="botones">
+      <button class="btn btn-camara" onclick="document.getElementById('camara').click()">
+        📷 Cámara
+      </button>
+      <button class="btn btn-galeria" onclick="document.getElementById('galeria').click()">
+        🖼️ Galería
+      </button>
+    </div>
+
+    <input type="file" id="camara" accept="image/*" capture="environment" style="display:none" onchange="procesarImagen(this)" />
+    <input type="file" id="galeria" accept="image/*" style="display:none" onchange="procesarImagen(this)" />
+
+    <button class="btn btn-clasificar" id="btnClasificar" onclick="clasificar()" disabled>
+      🔍 Clasificar
+    </button>
+
+    <!-- Resultado -->
+    <div class="resultado" id="resultado" style="display:none">
+      <h2>Resultado</h2>
+      <div class="card" id="cardBlanco"></div>
+      <div class="card" id="cardColor"></div>
+    </div>
+
+    <div class="loading" id="loading" style="display:none">
+      <div class="spinner"></div>
+      <p>Clasificando...</p>
+    </div>
+  </div>
+
+  <script>
+    let imagenBase64 = null;
+
+    function procesarImagen(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagenBase64 = e.target.result;
+        const preview = document.getElementById("preview");
+        preview.src = imagenBase64;
+        preview.style.display = "block";
+        document.getElementById("previewBox").querySelector("span").style.display = "none";
+        document.getElementById("btnClasificar").disabled = false;
+        document.getElementById("resultado").style.display = "none";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function clasificar() {
+      if (!imagenBase64) return;
+      document.getElementById("loading").style.display = "flex";
+      document.getElementById("resultado").style.display = "none";
+
+      try {
+        const res = await fetch("/clasificar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imagen: imagenBase64 })
+        });
+        const data = await res.json();
+
+        mostrarResultado("cardBlanco", "Fondo Blanco", data["IM_F_BLANCO"]);
+        mostrarResultado("cardColor", "Fondo Color", data["IM_F_COLOR"]);
+
+        document.getElementById("resultado").style.display = "block";
+      } catch (e) {
+        alert("Error al clasificar");
+      } finally {
+        document.getElementById("loading").style.display = "none";
+      }
+    }
+
+    function mostrarResultado(cardId, titulo, info) {
+      if (!info) return;
+      const card = document.getElementById(cardId);
+      const esConcha = info.clase.includes("CONCHA");
+      card.className = "card " + (esConcha ? "concha" : "ojo");
+      card.innerHTML = `
+        <div class="card-titulo">${titulo}</div>
+        <div class="card-clase">${info.clase}</div>
+        <div class="card-detalle">Modelo: ${info.modelo}</div>
+        <div class="card-detalle">Confianza: ${info.confianza}</div>
+      `;
+    }
+  </script>
+</body>
+</html>
