@@ -42,9 +42,9 @@ def clasificar():
             pred = modelos[fondo].predict(img_flat)[0]
             proba = modelos[fondo].predict_proba(img_flat)[0]
             confianza = max(proba)
-            if confianza >= 0.80:
+            if confianza >= 0.65:
                 clase = clases[pred]
-            elif confianza >= 0.60:
+            elif confianza >= 0.55:
                 clase = f"Posible {clases[pred]} ⚠️"
             else:
                 clase = "No es un pan 🚫"
