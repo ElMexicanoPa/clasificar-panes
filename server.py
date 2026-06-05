@@ -36,15 +36,21 @@ def clasificar():
 
     clases = {0: "CONCHA 🐚", 1: "OJO 👁️"}
     resultado = {}
+    UMBRAL_CONFIANZA = 0.70
 
     for fondo in ["IM_F_BLANCO", "IM_F_COLOR"]:
         if fondo in modelos:
             pred = modelos[fondo].predict(img_flat)[0]
             proba = modelos[fondo].predict_proba(img_flat)[0]
+            confianza = max(proba)
+            if confianza < UMBRAL_CONFIANZA:
+                clase = "No es un pan 🚫"
+            else:
+                clase = clases[pred]
             resultado[fondo] = {
-                "clase": clases[pred],
+                "clase": clase,
                 "modelo": nombres[fondo],
-                "confianza": f"{max(proba):.2%}"
+                "confianza": f"{confianza:.2%}"
             }
 
     return jsonify(resultado)
