@@ -36,7 +36,7 @@ def clasificar():
 
     clases = {0: "CONCHA 🐚", 1: "OJO 👁️"}
     resultado = {}
-    UMBRAL_CONFIANZA = 0.70
+    UMBRAL_CONFIANZA = 0.80
 
     for fondo in ["IM_F_BLANCO", "IM_F_COLOR"]:
         if fondo in modelos:
