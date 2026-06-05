@@ -44,8 +44,6 @@ def clasificar():
             confianza = max(proba)
             if confianza >= 0.65:
                 clase = clases[pred]
-            elif confianza >= 0.55:
-                clase = f"Posible {clases[pred]} ⚠️"
             else:
                 clase = "No es un pan 🚫"
             resultado[fondo] = {
